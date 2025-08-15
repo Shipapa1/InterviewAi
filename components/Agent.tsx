@@ -43,11 +43,11 @@ const Agent = ({ userName }: AgentProps) => {
         <div className="card-interviewer">
           <div className="avatar">
             <Image
-              src="/ai-avatar.png"
+              src="/ai_robot.jpeg"
               alt="vapi"
-              width={65}
-              height={54}
-              className="object-cover"
+              width={110}
+              height={100}
+              className="object-cover rounded-full"
             />
             {isSpeaking && <span className="animate-speak" />}
           </div>
@@ -57,7 +57,7 @@ const Agent = ({ userName }: AgentProps) => {
         <div className="card-border">
           <div className="card-content">
             <Image
-              src="/user-avatar.png"
+              src="/nathan.png"
               alt="user avatar"
               width={540}
               height={540}

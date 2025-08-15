@@ -5,22 +5,23 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-success-100: #49de50;
-  --color-success-200: #42c748;
+  --color-success-100: #ff9ec4; /* soft pink for success light */
+  --color-success-200: #ff7eb6; /* slightly deeper pink */
+
   --color-destructive-100: #f75353;
   --color-destructive-200: #c44141;
 
-  --color-primary-100: #dddfff;
-  --color-primary-200: #cac5fe;
+  --color-primary-100: #ffe4ec; /* light pastel pink */
+  --color-primary-200: #ffb6c1; /* classic light pink */
 
-  --color-light-100: #d6e0ff;
-  --color-light-400: #6870a6;
-  --color-light-600: #4f557d;
-  --color-light-800: #24273a;
+  --color-light-100: #ffeaf0; /* background-friendly pink */
+  --color-light-400: #f5a3b3;
+  --color-light-600: #e67890;
+  --color-light-800: #a84a5c;
 
-  --color-dark-100: #020408;
-  --color-dark-200: #27282f;
-  --color-dark-300: #242633;
+  --color-dark-100: #2a1014; /* deep rose brown */
+  --color-dark-200: #3a1a22;
+  --color-dark-300: #4b1f28;
 
   --font-mona-sans: "Mona Sans", sans-serif;
 

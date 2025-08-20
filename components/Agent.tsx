@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
-//import { vapi } from "@vapi-ai/web";
 //import { interviewer } from "@/constants";
 //import { createFeedback } from "@/lib/actions/general.action";
 
@@ -17,23 +16,24 @@ enum CallStatus {
   FINISHED = 'FINISHED',
 }
 
-interface SaveMessage{
+interface SavedMessage{
   role: 'user' | 'system' | 'assistant';
   content: string;
-
 }
 
 interface AgentProps {
   userName: string;
+  userId: string;
+  type: string;
+  userPhone?: string; // Added phone number prop
 }
 
-const Agent = ({ userName, userId, type }: AgentProps) => {
+const Agent = ({ userName, userId, type, userPhone }: AgentProps) => {
 
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
-
 
   useEffect(() =>{
       const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
@@ -81,14 +81,48 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   const lastMessage = messages[messages.length - 1];
 
   const handleCall = async() => {
-    setCallStatus(callStatus.CONNECTING);
-    await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-      variableValues: {
-        username: userName,
-        userid: userId,
+    setCallStatus(CallStatus.CONNECTING);
+    
+    // Check if userPhone is provided for phone-based calling
+    if (userPhone) {
+      // Use phone-based calling via your API route
+      try {
+        const response = await fetch('/api/your-route', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userid: userId,
+            userPhone: userPhone,
+            // Add other required fields from your route.ts
+            type,
+            // role, level, techstack, amount - you may need to pass these as props too
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Phone call initiated:', data.callId);
+          // The call status will be managed by Vapi events
+        } else {
+          console.error('Failed to initiate phone call');
+          setCallStatus(CallStatus.INACTIVE);
+        }
+      } catch (error) {
+        console.error('Error initiating phone call:', error);
+        setCallStatus(CallStatus.INACTIVE);
       }
-    })
-    console.log('Call started');
+    } else {
+      // Use web-based calling (your original implementation)
+      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
+        variableValues: {
+          username: userName,
+          userid: userId,
+        }
+      });
+      console.log('Web call started');
+    }
   };
 
   const handleDisconnect = async () => {
@@ -100,7 +134,6 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
   const latestMessage = messages[messages.length-1]?.content;
   const isCallInactiveOrFinished = callStatus === CallStatus.INACTIVE || callStatus ===
   CallStatus.FINISHED;
-
 
   return (
     <>
@@ -129,6 +162,11 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
               className="rounded-full object-cover size-[120px]"
             />
             <h3>{userName}</h3>
+            {userPhone && (
+              <p className="text-sm text-gray-600 mt-1">
+                Phone: {userPhone}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -161,7 +199,7 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
             <span className="relative">
               {callStatus === CallStatus.INACTIVE ||
               callStatus === CallStatus.FINISHED
-                ? 'Call'
+                ? (userPhone ? 'Call Phone' : 'Call')
                 : '. . .'}
             </span>
           </button>

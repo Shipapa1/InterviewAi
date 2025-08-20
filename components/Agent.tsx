@@ -21,28 +21,50 @@ interface SavedMessage{
   content: string;
 }
 
-interface AgentProps {
+interface AgentComponentProps {
   userName: string;
-  userId: string;
+  userId?: string;
   type: string;
   userPhone?: string; // Added phone number prop
+  questions?: string[];
+  interviewId?: string;
 }
 
-const Agent = ({ userName, userId, type, userPhone }: AgentProps) => {
+const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId }: AgentComponentProps) => {
 
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [hasStartedQuestions, setHasStartedQuestions] = useState<boolean>(false);
 
   useEffect(() =>{
-      const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
+      const onCallStart = () => {
+        setCallStatus(CallStatus.ACTIVE);
+        // Persist that the interview has started if we have an interview id
+        if (userId) {
+          fetch('/api/interviews/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ interviewId, userId }),
+          }).catch(() => {});
+        }
+        if (!hasStartedQuestions) {
+          sendNextQuestion();
+        }
+      };
       const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
 
       const onMessage = (message: Message) => {
         if(message.type === 'transcript' && message.transcriptType == 'final'){
           const newMessage = { role: message.role, content: message.transcript}
           setMessages((prev) => [...prev, newMessage]);
+
+          // When we receive the user's final answer, move to the next question
+          if (message.role === 'user') {
+            sendNextQuestion();
+          }
         }
       }
 
@@ -79,6 +101,37 @@ const Agent = ({ userName, userId, type, userPhone }: AgentProps) => {
   //   'My name is John Doe, nice to meet you',
   // ];
   const lastMessage = messages[messages.length - 1];
+
+  const sendNextQuestion = () => {
+    if (!questions || questions.length === 0) return;
+
+    setCurrentQuestionIndex((prev) => {
+      const nextIndex = hasStartedQuestions ? prev + 1 : prev;
+      const withinBounds = nextIndex < questions.length;
+
+      if (!hasStartedQuestions) {
+        setHasStartedQuestions(true);
+      }
+
+      if (withinBounds) {
+        const q = questions[nextIndex];
+        try {
+          // Ask the next question as the assistant so it is spoken out loud
+          // Many Vapi clients support sending an assistant message this way.
+          // If your SDK exposes a different helper (e.g., vapi.say), swap accordingly.
+          // @ts-ignore
+          vapi.send({ type: 'add-message', role: 'assistant', content: q });
+        } catch (err) {
+          console.error('Failed to send next question', err);
+        }
+      } else {
+        // No more questions; optionally end the call
+        // setCallStatus(CallStatus.FINISHED);
+      }
+
+      return withinBounds ? nextIndex : prev;
+    });
+  };
 
   const handleCall = async() => {
     setCallStatus(CallStatus.CONNECTING);

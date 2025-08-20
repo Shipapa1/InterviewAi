@@ -83,32 +83,69 @@ export async function signIn(params: SignInParams){
 
 
 export async function getCurrentUser(): Promise<User | null> {
-    const cookieStore = await cookies();
-  
-    const sessionCookie = cookieStore.get("session")?.value;
-    if (!sessionCookie) return null;
-  
-    try {
-      const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
-  
-      const userRecord = await db
-        .collection("users")
-        .doc(decodedClaims.uid)
-        .get();
-      if (!userRecord.exists) return null;
-  
-      return {
-        ...userRecord.data(),
-        id: userRecord.id,
-      } as User;
-    } catch (error) {
-      console.log(error);
+  const cookieStore = await cookies();
 
-      return null;
-    }
+  const sessionCookie = cookieStore.get("session")?.value;
+  if (!sessionCookie) return null;
+
+  try {
+    const decodedClaims = await auth.verifySessionCookie(sessionCookie, true);
+
+    // get user info from db
+    const userRecord = await db
+      .collection("users")
+      .doc(decodedClaims.uid)
+      .get();
+    if (!userRecord.exists) return null;
+
+    return {
+      ...userRecord.data(),
+      id: userRecord.id,
+    } as User;
+  } catch (error) {
+    console.log(error);
+
+    // Invalid or expired session
+    return null;
   }
+}
 
 export async function isAuthenticated() {
     const user = await getCurrentUser();
     return !!user;
 }
+
+export async function getInterviewByUserId(userId: string): Promise<Interview[]> {
+    if (!userId) {
+        return [];
+    }
+
+    const interviewsSnapshot = await db
+        .collection('interviews')
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+    return interviewsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    })) as Interview[];
+}
+
+export async function getLatestInterviews(params: GetLatestInterviewsParams): Promise<Interview[]> {
+    const { userId, limit = 5 } = params;
+    if (!userId) return [];
+
+    const snapshot = await db
+        .collection('interviews')
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .limit(limit)
+        .get();
+
+    return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    })) as Interview[];
+}
+

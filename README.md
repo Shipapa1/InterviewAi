@@ -82,7 +82,7 @@ This platform combines cutting-edge AI technologies to create an immersive inter
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn
+- Node.js
 - Firebase account
 - Google AI Studio access
 - Vapi.AI account
@@ -183,26 +183,7 @@ InterviewAi/
 ### Deployment Limitations
 **Live Demo Availability**: The deployed version may be temporarily unavailable due to Vapi.AI's free tier limitations (10 credits). If the voice agent isn't responding, the credits have been exhausted. For uninterrupted access, please run the project locally with your own API credentials.
 
-### Performance Considerations
-- Voice processing requires stable internet connection
-- Optimal performance on Chrome/Edge browsers
-- Mobile experience optimized for iOS Safari and Android Chrome
 
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
-
-### Development Guidelines
-- Follow TypeScript best practices
-- Maintain consistent code formatting
-- Add tests for new features
-- Update documentation as needed
 
 ## 🐛 Known Issues & Roadmap
 
@@ -210,21 +191,6 @@ We welcome contributions! Here's how you can help:
 - Vapi.AI free tier credit restrictions
 - Limited to English language interviews
 - Voice recognition accuracy varies by accent
-
-### Future Enhancements
-- [ ] Multi-language support
-- [ ] Custom interview templates
-- [ ] Team collaboration features
-- [ ] Advanced analytics dashboard
-- [ ] Mobile app development
-- [ ] Integration with job boards
-
-## 📊 Performance Metrics
-
-- **Response Time**: < 2 seconds for AI-generated questions
-- **Voice Latency**: < 500ms for real-time conversation
-- **Feedback Generation**: < 10 seconds for comprehensive analysis
-- **Uptime**: 99.5% availability (excluding API limitations)
 
 ## 👨‍💻 Developer
 
@@ -248,12 +214,3 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-<div align="center">
-
-**⭐ Star this repository if you found it helpful!**
-
-![GitHub stars](https://img.shields.io/github/stars/Shipapa1/InterviewAi?style=social)
-![GitHub forks](https://img.shields.io/github/forks/Shipapa1/InterviewAi?style=social)
-![GitHub issues](https://img.shields.io/github/issues/Shipapa1/InterviewAi)
-
-</div>

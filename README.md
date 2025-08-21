@@ -12,6 +12,12 @@ This platform combines cutting-edge AI technologies to create an immersive inter
 
 **Watch the full demo on YouTube:** [https://youtu.be/GXbgUTFeWxg](https://youtu.be/GXbgUTFeWxg)
 
+## 🌐 Deployment
+
+The project is deployed on **Vercel** and can be accessed here:  
+👉 [Live App](https://interview-4wvnwhjt3-nathan-nguyens-projects-eaa2d459.vercel.app/)
+
+
 ## ✨ Features
 
 ### 🔐 Authentication System

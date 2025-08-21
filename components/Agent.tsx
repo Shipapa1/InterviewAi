@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
-//import { interviewer } from "@/constants";
-//import { createFeedback } from "@/lib/actions/general.action";
 
 enum CallStatus {
   INACTIVE = 'INACTIVE',
@@ -25,12 +23,13 @@ interface AgentComponentProps {
   userName: string;
   userId?: string;
   type: string;
-  userPhone?: string; // Added phone number prop
+  userPhone?: string;
   questions?: string[];
   interviewId?: string;
+  feedbackId?: string;
 }
 
-const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId }: AgentComponentProps) => {
+const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId, feedbackId }: AgentComponentProps) => {
 
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -38,6 +37,7 @@ const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId 
   const [messages, setMessages] = useState<SavedMessage[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [hasStartedQuestions, setHasStartedQuestions] = useState<boolean>(false);
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState<boolean>(false);
 
   useEffect(() =>{
       const onCallStart = () => {
@@ -54,7 +54,15 @@ const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId 
           sendNextQuestion();
         }
       };
-      const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
+      
+      const onCallEnd = async () => {
+        setCallStatus(CallStatus.FINISHED);
+        
+        // Generate feedback if we have messages and an interview ID
+        if (messages.length > 0 && interviewId && userId && !feedbackId) {
+          await generateFeedback();
+        }
+      };
 
       const onMessage = (message: Message) => {
         if(message.type === 'transcript' && message.transcriptType == 'final'){
@@ -88,19 +96,45 @@ const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId 
            vapi.off('error', onError);
       }
 
-  }, [])
+  }, [messages, interviewId, userId, feedbackId])
 
-  useEffect(() => {
-      if(callStatus === CallStatus.FINISHED)router.push('/');
-  }, [messages, callStatus, type, userId]);
+  const generateFeedback = async () => {
+    if (!interviewId || !userId || messages.length === 0) return;
+    
+    setIsGeneratingFeedback(true);
+    
+    try {
+      const response = await fetch('/api/feedback/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interviewId,
+          userId,
+          transcript: messages,
+        }),
+      });
+      
+      if (response.ok) {
+        const { feedbackId: newFeedbackId } = await response.json();
+        // Redirect to feedback page
+        router.push(`/interview/${interviewId}/feedback`);
+      } else {
+        console.error('Failed to generate feedback');
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Error generating feedback:', error);
+      router.push('/');
+    } finally {
+      setIsGeneratingFeedback(false);
+    }
+  };
 
-  // const isSpeaking = true;
-  // const callStatus = CallStatus.FINISHED;
-  // const messages = [
-  //   'Whats your name?',
-  //   'My name is John Doe, nice to meet you',
-  // ];
-  const lastMessage = messages[messages.length - 1];
+  const handleDisconnect = async () => {
+    setCallStatus(CallStatus.FINISHED);
+    vapi.stop();
+    console.log('Call ended');
+  };
 
   const sendNextQuestion = () => {
     if (!questions || questions.length === 0) return;
@@ -148,16 +182,13 @@ const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId 
           body: JSON.stringify({
             userid: userId,
             userPhone: userPhone,
-            // Add other required fields from your route.ts
             type,
-            // role, level, techstack, amount - you may need to pass these as props too
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
           console.log('Phone call initiated:', data.callId);
-          // The call status will be managed by Vapi events
         } else {
           console.error('Failed to initiate phone call');
           setCallStatus(CallStatus.INACTIVE);
@@ -178,15 +209,8 @@ const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId 
     }
   };
 
-  const handleDisconnect = async () => {
-    setCallStatus(CallStatus.FINISHED);
-    vapi.stop();
-    console.log('Call ended');
-  };
-
   const latestMessage = messages[messages.length-1]?.content;
-  const isCallInactiveOrFinished = callStatus === CallStatus.INACTIVE || callStatus ===
-  CallStatus.FINISHED;
+  const isCallInactiveOrFinished = callStatus === CallStatus.INACTIVE || callStatus === CallStatus.FINISHED;
 
   return (
     <>
@@ -237,6 +261,12 @@ const Agent = ({ userName, userId, type, userPhone, questions = [], interviewId 
               {latestMessage}
             </p>
           </div>
+        </div>
+      )}
+
+      {isGeneratingFeedback && (
+        <div className="text-center py-4">
+          <p className="text-lg">Generating your feedback...</p>
         </div>
       )}
 

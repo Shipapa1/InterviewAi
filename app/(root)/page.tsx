@@ -21,9 +21,14 @@ const Page = async () => {
           <p className="text-lg">
             Practice on real interview questions & get instant Feedback
           </p>
-          <Button asChild className="btn-primary max-sm:w-full">
-            <Link href="/interview">Start an Interview</Link>
-          </Button>
+          <div className="flex gap-3 max-sm:flex-col">
+            <Button asChild className="btn-primary max-sm:w-full">
+              <Link href="/interview">Start an Interview</Link>
+            </Button>
+            <Button asChild className="btn-secondary max-sm:w-full">
+              <Link href="/sign-up">Sign up</Link>
+            </Button>
+          </div>
         </div>
         <Image
           src="/robot2.png"
